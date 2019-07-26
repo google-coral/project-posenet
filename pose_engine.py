@@ -18,8 +18,8 @@ import math
 import numpy as np
 from pkg_resources import parse_version
 from edgetpu import __version__ as edgetpu_version
-#assert parse_version(edgetpu_version) >= parse_version('2.10.2'), \
-#        'This demo requires Edge TPU version >= 2.10.2'
+assert parse_version(edgetpu_version) >= parse_version('2.11.1'), \
+        'This demo requires Edge TPU version >= 2.11.1'
 
 from edgetpu.basic.basic_engine import BasicEngine
 from edgetpu.utils import image_processing
@@ -94,8 +94,8 @@ class PoseEngine(BasicEngine):
                  ' This model has {}.'.format(self._input_tensor_shape)))
         _, self.image_height, self.image_width, self.image_depth = self.get_input_tensor_shape()
 
-    # The API returns all the output tensors flattened and concatenated. We
-    # have to figure out the boundaries from the tensor shapes & sizes.
+        # The API returns all the output tensors flattened and concatenated. We
+        # have to figure out the boundaries from the tensor shapes & sizes.
         offset = 0
         self._output_offsets = [0]
         for size in self.get_all_output_tensors_sizes():
