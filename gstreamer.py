@@ -107,13 +107,13 @@ def run_pipeline(user_function,
             PIPELINE += """ ! videoconvert ! videoscale ! {sink_caps} ! {leaky_q} ! {sink_element}
             """
             APPSRC_PIPELINE += """ ! {leaky_q} ! {videoflip} ! videoconvert
-               ! rsvgoverlay name=overlay ! videoconvert ! ximagesink
+               ! rsvgoverlay name=overlay ! videoconvert ! autovideosink
             """
         else:
             PIPELINE += """ ! videoconvert ! videoscale ! {sink_caps} ! tee name=t
                t. ! {leaky_q} ! {sink_element}
                t. ! {leaky_q} ! {videoflip} ! videoconvert
-                  ! rsvgoverlay name=overlay ! videoconvert ! ximagesink
+                  ! rsvgoverlay name=overlay ! videoconvert ! autovideosink
             """
 
     SINK_ELEMENT = 'appsink name=appsink sync=false emit-signals=true max-buffers=1 drop=true'
