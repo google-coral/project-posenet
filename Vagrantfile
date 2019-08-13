@@ -67,6 +67,10 @@ Vagrant.configure("2") do |config|
     # As a work-around, run the whole thing as root :-(
     yes | sudo edgetpu_api/install.sh
   SHELL
+
+  # When we're done with the generic setup, do the specific setup as well:
+  config.vm.provision "shell", path: 'install_requirements.sh'
+
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
   # `vagrant box outdated`. This is not recommended.

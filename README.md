@@ -96,7 +96,7 @@ sh install_requirements.sh
 The Coral USB Accelerator is not supported under OSX, but you can use it from
 a Linux VM under VirtualBox if you forward the USB port through.
 
-```
+```bash
 # virtualbox will prompt you to enable it in security settings.
 # Re-run the install if this causes it to error out the first time.
 brew cask install virtualbox
@@ -107,10 +107,38 @@ vagrant plugin install vagrant-vbguest
 
 Once you have installed the requirements, you can start the machine.
 This will take a while.
-```
+```bash
 vagrant up
+# Reboot it with the correct version of guest additions installed.
+vagrant reload
 ```
 
+Once everything is built, you can get a shell by typing:
+```bash
+vagrant ssh
+```
+
+Now that you're in, you should check that the coral device is visible:
+```
+$ lsusb
+Bus 002 Device 003: ID 1a6e:089a Global Unichip Corp. 
+Bus 002 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+```
+
+You can run the examples as described below, from the project-posenet dir
+```bash
+cd project-posenet
+python3 simple_pose.py
+```
+
+Once you have run an example, the device's id will change:
+```
+$ lsusb
+Bus 002 Device 002: ID 18d1:9302 Google Inc. 
+Bus 002 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+```
 
 ## Examples in this repo
 
