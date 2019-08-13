@@ -76,18 +76,43 @@ a keypoint has been detected.
 
 
 
-## Examples in this repo
+## Setup
 
 NOTE: PoseNet relies on the latest Coral API (2.11.1) - please update your
 system before running these examples. For more information on updating see:
   * For [Coral DevBoard](https://coral.withgoogle.com/docs/dev-board/get-started/#update-the-mendel-software)
   * For [USB Accelerator](https://coral.withgoogle.com/docs/accelerator/get-started/#set-up-on-linux-or-raspberry-pi)
 
+### Linux
+
 To install all the requirements, simply run 
 
 ```
 sh install_requirements.sh
 ```
+
+### OSX
+
+The Coral USB Accelerator is not supported under OSX, but you can use it from
+a Linux VM under VirtualBox if you forward the USB port through.
+
+```
+# virtualbox will prompt you to enable it in security settings.
+# Re-run the install if this causes it to error out the first time.
+brew cask install virtualbox
+brew cask install vagrant
+brew cask install virtualbox-extension-pack
+vagrant plugin install vagrant-vbguest
+```
+
+Once you have installed the requirements, you can start the machine.
+This will take a while.
+```
+vagrant up
+```
+
+
+## Examples in this repo
 
 ### simple_pose.py
 
