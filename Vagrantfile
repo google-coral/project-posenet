@@ -19,6 +19,10 @@ Vagrant.configure("2") do |config|
   # to switch to a different config.vm.box later.
   config.vm.boot_timeout = 600
 
+  # Keep the VM's Guest Additions' version in sync with the VirtualBox host.
+  # Might require a `vagrant reload` after the first build.
+  config.vagrant.plugins = ["vagrant-vbguest"]
+
   config.vm.provider "virtualbox" do |vb|
     # This requires `brew cask install virtualbox-extension-pack` for USB3
     vb.customize ["modifyvm", :id, "--usbxhci", "on"]
