@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import itertools
+import svgwrite
 import time
 
 import numpy as np
@@ -107,9 +108,13 @@ def main():
 
     prev_notes = set()
 
-    def render_overlay(engine, image, svg_canvas):
+    def run_inference(engine, input_tensor):
+        return engine.run_inference(input_tensor)
+
+    def render_overlay(engine, output, src_size, inference_box):
         nonlocal prev_notes
-        outputs, inference_time = engine.DetectPosesInImage(image)
+        svg_canvas = svgwrite.Drawing('', size=src_size)
+        outputs, inference_time = engine.ParseOutput(output)
 
         poses = [pose for pose in (Pose(pose, 0.2) for pose in outputs)
                  if pose.keypoints]
@@ -139,9 +144,11 @@ def main():
 
         for i, pose in enumerate(poses):
             identity = IDENTITIES[pose.id % len(IDENTITIES)]
-            pose_camera.draw_pose(svg_canvas, pose, color=identity.color)
+            pose_camera.draw_pose(svg_canvas, pose, src_size, inference_box, color=identity.color)
 
-    pose_camera.run(render_overlay)
+        return (svg_canvas.tostring(), False)
+
+    pose_camera.run(run_inference, render_overlay)
 
 
 if __name__ == '__main__':

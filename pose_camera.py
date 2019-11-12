@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import argparse
+import collections
 from functools import partial
 import re
 import time
@@ -54,12 +55,18 @@ def shadow_text(dwg, x, y, text, font_size=16):
                      font_size=font_size, style='font-family:sans-serif'))
 
 
-def draw_pose(dwg, pose, color='yellow', threshold=0.2):
+def draw_pose(dwg, pose, src_size, inference_box, color='yellow', threshold=0.2):
+    box_x, box_y, box_w, box_h = inference_box
+    scale_x, scale_y = src_size[0] / box_w, src_size[1] / box_h
     xys = {}
     for label, keypoint in pose.keypoints.items():
         if keypoint.score < threshold: continue
-        xys[label] = (int(keypoint.yx[1]), int(keypoint.yx[0]))
-        dwg.add(dwg.circle(center=(int(keypoint.yx[1]), int(keypoint.yx[0])), r=5,
+        # Offset and scale to source coordinate space.
+        kp_y = int((keypoint.yx[0] - box_y) * scale_y)
+        kp_x = int((keypoint.yx[1] - box_x) * scale_x)
+
+        xys[label] = (kp_x, kp_y)
+        dwg.add(dwg.circle(center=(int(kp_x), int(kp_y)), r=5,
                            fill='cyan', fill_opacity=keypoint.score, stroke=color))
 
     for a, b in EDGES:
@@ -68,8 +75,18 @@ def draw_pose(dwg, pose, color='yellow', threshold=0.2):
         bx, by = xys[b]
         dwg.add(dwg.line(start=(ax, ay), end=(bx, by), stroke=color, stroke_width=2))
 
+def avg_fps_counter(window_size):
+    window = collections.deque(maxlen=window_size)
+    prev = time.monotonic()
+    yield 0.0  # First fps value.
 
-def run(callback, use_appsrc=False):
+    while True:
+        curr = time.monotonic()
+        window.append(curr - prev)
+        prev = curr
+        yield len(window) / sum(window)
+
+def run(inf_callback, render_callback):
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--mirror', help='flip video horizontally', action='store_true')
     parser.add_argument('--model', help='.tflite model path.', required=False)
@@ -77,6 +94,7 @@ def run(callback, use_appsrc=False):
                         choices=['480x360', '640x480', '1280x720'])
     parser.add_argument('--videosrc', help='Which video source to use', default='/dev/video0')
     parser.add_argument('--h264', help='Use video/x-h264 input', action='store_true')
+    parser.add_argument('--jpeg', help='Use image/jpeg input', action='store_true')
     args = parser.parse_args()
 
     default_model = 'models/posenet_mobilenet_v1_075_%d_%d_quant_decoder_edgetpu.tflite'
@@ -94,40 +112,51 @@ def run(callback, use_appsrc=False):
         model = args.model or default_model % (721, 1281)
 
     print('Loading model: ', model)
-    engine = PoseEngine(model, mirror=args.mirror)
-    gstreamer.run_pipeline(partial(callback, engine),
-                           src_size, appsink_size,
-                           use_appsrc=use_appsrc, mirror=args.mirror,
-                           videosrc=args.videosrc, h264input=args.h264)
+    engine = PoseEngine(model)
+    input_shape = engine.get_input_tensor_shape()
+    inference_size = (input_shape[2], input_shape[1])
+
+    gstreamer.run_pipeline(partial(inf_callback, engine), partial(render_callback, engine),
+                           src_size, inference_size,
+                           mirror=args.mirror,
+                           videosrc=args.videosrc,
+                           h264=args.h264,
+                           jpeg=args.jpeg
+                           )
 
 
 def main():
-    last_time = time.monotonic()
     n = 0
-    sum_fps = 0
     sum_process_time = 0
     sum_inference_time = 0
+    ctr = 0
+    fps_counter  = avg_fps_counter(30)
 
-    def render_overlay(engine, image, svg_canvas):
-        nonlocal n, sum_fps, sum_process_time, sum_inference_time, last_time
+    def run_inference(engine, input_tensor):
+        return engine.run_inference(input_tensor)
+
+    def render_overlay(engine, output, src_size, inference_box):
+        nonlocal n, sum_process_time, sum_inference_time, fps_counter
+
+        svg_canvas = svgwrite.Drawing('', size=src_size)
         start_time = time.monotonic()
-        outputs, inference_time = engine.DetectPosesInImage(image)
+        outputs, inference_time = engine.ParseOutput(output)
         end_time = time.monotonic()
         n += 1
-        sum_fps += 1.0 / (end_time - last_time)
-        sum_process_time += 1000 * (end_time - start_time) - inference_time
+        sum_process_time += 1000 * (end_time - start_time)
         sum_inference_time += inference_time
-        last_time = end_time
-        text_line = 'PoseNet: %.1fms Frame IO: %.2fms TrueFPS: %.2f Nposes %d' % (
-            sum_inference_time / n, sum_process_time / n, sum_fps / n, len(outputs)
+
+        avg_inference_time = sum_inference_time / n
+        text_line = 'PoseNet: %.1fms (%.2f fps) TrueFPS: %.2f Nposes %d' % (
+            avg_inference_time, 1000 / avg_inference_time, next(fps_counter), len(outputs)
         )
-        print(text_line)
 
         shadow_text(svg_canvas, 10, 20, text_line)
         for pose in outputs:
-            draw_pose(svg_canvas, pose)
+            draw_pose(svg_canvas, pose, src_size, inference_box)
+        return (svg_canvas.tostring(), False)
 
-    run(render_overlay)
+    run(run_inference, render_overlay)
 
 
 if __name__ == '__main__':

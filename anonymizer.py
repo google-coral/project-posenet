@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import svgwrite
 import time
 
 import pose_camera
@@ -20,32 +21,34 @@ BACKGROUND_DELAY = 2  # seconds
 
 
 def main():
-    background_image = None
+    background_locked = False
     timer_time = time.monotonic()
 
-    def render_overlay(engine, image, svg_canvas):
-        nonlocal timer_time, background_image
-        outputs, inference_time = engine.DetectPosesInImage(image)
+    def run_inference(engine, input_tensor):
+        return engine.run_inference(input_tensor)
+
+    def render_overlay(engine, output, src_size, inference_box):
+        nonlocal timer_time, background_locked
+        svg_canvas = svgwrite.Drawing('', size=src_size)
+        outputs, inference_time = engine.ParseOutput(output)
         now_time = time.monotonic()
 
-        if background_image is None:
+        if not background_locked:
+            print('Waiting for everyone to leave the frame...')
             pose_camera.shadow_text(svg_canvas, 10, 20,
                                     'Waiting for everyone to leave the frame...')
             if outputs:  # frame still has people in it, restart timer
-                print('Waiting for everyone to leave the frame...')
                 timer_time = now_time
             elif now_time > timer_time + BACKGROUND_DELAY:  # frame has been empty long enough
-                background_image = image
+                background_locked = True
                 print('Background set.')
-        else:
-            image = background_image
 
         for pose in outputs:
-            pose_camera.draw_pose(svg_canvas, pose)
+            pose_camera.draw_pose(svg_canvas, pose, src_size, inference_box)
 
-        return image
+        return (svg_canvas.tostring(), background_locked)
 
-    pose_camera.run(render_overlay, use_appsrc=True)
+    pose_camera.run(run_inference, render_overlay)
 
 
 if __name__ == '__main__':
