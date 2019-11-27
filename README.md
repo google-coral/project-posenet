@@ -78,7 +78,7 @@ a keypoint has been detected.
 
 ## Examples in this repo
 
-NOTE: PoseNet relies on the latest Coral API (2.11.1) - please update your
+NOTE: PoseNet relies on the latest Coral API (2.12.2) and for the Dev Board the latest system image - please update your
 system before running these examples. For more information on updating see:
   * For [Coral DevBoard](https://coral.withgoogle.com/docs/dev-board/get-started/#update-the-mendel-software)
   * For [USB Accelerator](https://coral.withgoogle.com/docs/accelerator/get-started/#set-up-on-linux-or-raspberry-pi)
