@@ -54,7 +54,7 @@ class Keypoint:
         self.score = score
 
     def __repr__(self):
-        return 'Keypoint(<{}>, {}, {})'.format(KEYPOINTS[self.k], self.yx, self.score)
+        return 'Keypoint(<{}>, {}, {})'.format(self.k, self.yx, self.score)
 
 
 class Pose:
