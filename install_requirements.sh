@@ -20,7 +20,7 @@ if grep -s -q "MX8MQ" /sys/firmware/devicetree/base/model; then
   sudo pip3 install python-periphery 
 else
   # Install gstreamer 
-  sudo apt-get install -y gstreamer1.0-plugins-bad gstreamer1.0-plugins-good python3-gst-1.0 python3-gi python3-numpy
+  sudo apt-get install -y gstreamer1.0-plugins-bad gstreamer1.0-plugins-good python3-gst-1.0 python3-gi gobject-introspection gir1.2-gtk-3.0 python3-numpy
   pip3 install svgwrite
 
   if grep -s -q "Raspberry Pi" /sys/firmware/devicetree/base/model; then
