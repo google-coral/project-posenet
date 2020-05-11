@@ -97,7 +97,7 @@ def run(inf_callback, render_callback):
     parser.add_argument('--jpeg', help='Use image/jpeg input', action='store_true')
     args = parser.parse_args()
 
-    default_model = 'models/posenet_mobilenet_v1_075_%d_%d_quant_decoder_edgetpu.tflite'
+    default_model = 'models/mobilenet/posenet_mobilenet_v1_075_%d_%d_quant_decoder_edgetpu.tflite'
     if args.res == '480x360':
         src_size = (640, 480)
         appsink_size = (480, 360)

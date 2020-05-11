@@ -208,7 +208,7 @@ from pose_engine import PoseEngine
 pil_image = Image.open('couple.jpg')
 pil_image.resize((641, 481), Image.NEAREST)
 
-engine = PoseEngine('models/posenet_mobilenet_v1_075_481_641_quant_decoder_edgetpu.tflite')
+engine = PoseEngine('models/mobilenet/posenet_mobilenet_v1_075_481_641_quant_decoder_edgetpu.tflite')
 poses, inference_time = engine.DetectPosesInImage(np.uint8(pil_image))
 print('Inference time: %.fms'%inference_time)
 
