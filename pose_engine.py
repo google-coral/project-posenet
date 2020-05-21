@@ -100,7 +100,7 @@ class PoseEngine(BasicEngine):
         self._output_offsets = [0]
         for size in self.get_all_output_tensors_sizes():
             offset += size
-            self._output_offsets.append(offset)
+            self._output_offsets.append(int(offset))
 
     def DetectPosesInImage(self, img):
         """Detects poses in a given image.
