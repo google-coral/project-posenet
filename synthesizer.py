@@ -46,11 +46,11 @@ CHANNELS = (OVERDRIVEN_GUITAR, ELECTRIC_BASS_FINGER, VOICE_OOHS)
 
 
 class Identity:
-    def __init__(self, color, base_note, instrument, extent=2*OCTAVE):
-        self.color = color
-        self.base_note = base_note
-        self.channel = CHANNELS.index(instrument)
-        self.extent = extent
+  def __init__(self, color, base_note, instrument, extent=2*OCTAVE):
+    self.color = color
+    self.base_note = base_note
+    self.channel = CHANNELS.index(instrument)
+    self.extent = extent
 
 
 IDENTITIES = (
@@ -61,95 +61,99 @@ IDENTITIES = (
 
 
 class Pose:
-    def __init__(self, pose, threshold):
-        self.pose = pose
-        self.id = None
-        self.keypoints = {label: k for label, k in pose.keypoints.items()
-                          if k.score > threshold}
-        self.center = (np.mean([k.yx for k in self.keypoints.values()], axis=0)
-                       if self.keypoints else None)
+  def __init__(self, pose, threshold):
+    self.pose = pose
+    self.id = None
+    self.keypoints = {label: k for label, k in pose.keypoints.items()
+                      if k.score > threshold}
+    self.center = (np.mean([k.yx for k in self.keypoints.values()], axis=0)
+                   if self.keypoints else None)
 
-    def quadrance(self, other):
-        d = self.center - other.center
-        return d.dot(d)
+  def quadrance(self, other):
+    d = self.center - other.center
+    return d.dot(d)
 
 
 class PoseTracker:
-    def __init__(self):
-        self.prev_poses = []
-        self.next_pose_id = 0
+  def __init__(self):
+    self.prev_poses = []
+    self.next_pose_id = 0
 
-    def assign_pose_ids(self, poses):
-        """copy nearest pose ids from previous frame to current frame"""
-        all_pairs = sorted(itertools.product(poses, self.prev_poses),
-                           key=lambda pair: pair[0].quadrance(pair[1]))
-        used_ids = set()
-        for pose, prev_pose in all_pairs:
-            if pose.id is None and prev_pose.id not in used_ids:
-                pose.id = prev_pose.id
-                used_ids.add(pose.id)
+  def assign_pose_ids(self, poses):
+    """copy nearest pose ids from previous frame to current frame"""
+    all_pairs = sorted(itertools.product(poses, self.prev_poses),
+                       key=lambda pair: pair[0].quadrance(pair[1]))
+    used_ids = set()
+    for pose, prev_pose in all_pairs:
+      if pose.id is None and prev_pose.id not in used_ids:
+        pose.id = prev_pose.id
+        used_ids.add(pose.id)
 
-        for pose in poses:
-            if pose.id is None:
-                pose.id = self.next_pose_id
-                self.next_pose_id += 1
+    for pose in poses:
+      if pose.id is None:
+        pose.id = self.next_pose_id
+        self.next_pose_id += 1
 
-        self.prev_poses = poses
+    self.prev_poses = poses
 
 
 def main():
-    pose_tracker = PoseTracker()
-    synth = fluidsynth.Synth()
+  pose_tracker = PoseTracker()
+  synth = fluidsynth.Synth()
 
-    synth.start('alsa')
-    soundfont_id = synth.sfload('/usr/share/sounds/sf2/FluidR3_GM.sf2')
-    for channel, instrument in enumerate(CHANNELS):
-        synth.program_select(channel, soundfont_id, 0, instrument)
+  synth.start('alsa')
+  soundfont_id = synth.sfload('/usr/share/sounds/sf2/FluidR3_GM.sf2')
+  for channel, instrument in enumerate(CHANNELS):
+    synth.program_select(channel, soundfont_id, 0, instrument)
 
-    prev_notes = set()
+  prev_notes = set()
 
-    def run_inference(engine, input_tensor):
-        return engine.run_inference(input_tensor)
+  def run_inference(engine, input_tensor):
+    return engine.run_inference(input_tensor)
 
-    def render_overlay(engine, output, src_size, inference_box):
-        nonlocal prev_notes
-        svg_canvas = svgwrite.Drawing('', size=src_size)
-        outputs, inference_time = engine.ParseOutput(output)
+  def render_overlay(engine, output, src_size, inference_box):
+    nonlocal prev_notes
+    svg_canvas = svgwrite.Drawing('', size=src_size)
+    outputs, inference_time = engine.ParseOutput(output)
 
-        poses = [pose for pose in (Pose(pose, 0.2) for pose in outputs)
-                 if pose.keypoints]
-        pose_tracker.assign_pose_ids(poses)
+    poses = [pose for pose in (Pose(pose, 0.2) for pose in outputs)
+             if pose.keypoints]
+    pose_tracker.assign_pose_ids(poses)
 
-        velocities = {}
-        for pose in poses:
-            left = pose.keypoints.get('left wrist')
-            right = pose.keypoints.get('right wrist')
-            if not (left and right): continue
+    velocities = {}
+    for pose in poses:
+      left = pose.keypoints.get('left wrist')
+      right = pose.keypoints.get('right wrist')
+      if not (left and right):
+        continue
 
-            identity = IDENTITIES[pose.id % len(IDENTITIES)]
-            left = 1 - left.yx[0] / engine.image_height
-            right = 1 - right.yx[0] / engine.image_height
-            velocity = int(left * 100)
-            i = int(right * identity.extent)
-            note = (identity.base_note
-                    + OCTAVE * (i // len(SCALE))
-                    + SCALE[i % len(SCALE)])
-            velocities[(identity.channel, note)] = velocity
+      identity = IDENTITIES[pose.id % len(IDENTITIES)]
+      left = 1 - left.yx[0] / engine.image_height
+      right = 1 - right.yx[0] / engine.image_height
+      velocity = int(left * 100)
+      i = int(right * identity.extent)
+      note = (identity.base_note
+              + OCTAVE * (i // len(SCALE))
+              + SCALE[i % len(SCALE)])
+      velocities[(identity.channel, note)] = velocity
 
-        for note in prev_notes:
-            if note not in velocities: synth.noteoff(*note)
-        for note, velocity in velocities.items():
-            if note not in prev_notes: synth.noteon(*note, velocity)
-        prev_notes = velocities.keys()
+    for note in prev_notes:
+      if note not in velocities:
+        synth.noteoff(*note)
+    for note, velocity in velocities.items():
+      if note not in prev_notes:
+        synth.noteon(*note, velocity)
+    prev_notes = velocities.keys()
 
-        for i, pose in enumerate(poses):
-            identity = IDENTITIES[pose.id % len(IDENTITIES)]
-            pose_camera.draw_pose(svg_canvas, pose, src_size, inference_box, color=identity.color)
+    for i, pose in enumerate(poses):
+      identity = IDENTITIES[pose.id % len(IDENTITIES)]
+      pose_camera.draw_pose(svg_canvas, pose, src_size,
+                            inference_box, color=identity.color)
 
-        return (svg_canvas.tostring(), False)
+    return (svg_canvas.tostring(), False)
 
-    pose_camera.run(run_inference, render_overlay)
+  pose_camera.run(run_inference, render_overlay)
 
 
 if __name__ == '__main__':
-    main()
+  main()
