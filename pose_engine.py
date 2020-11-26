@@ -32,8 +32,19 @@ EDGETPU_SHARED_LIB = {
     'Windows': 'edgetpu.dll'
 }[platform.system()]
 
-os.environ['LD_LIBRARY_PATH'] = os.getcwd() + '/posenet_lib'
-POSENET_SHARED_LIB = 'posenet_decoder.so'
+
+def get_posenet_lib():
+    arch = platform.processor()
+    if arch == 'x86_64':
+        full_path = 'posenet_lib/k8/posenet_decoder.so'
+    elif arch == 'aarch64':
+        full_path = 'posenet_lib/aarch64/posenet_decoder.so'
+    else:
+        full_path = 'posenet_lib/armv7l/posenet_decoder.so'
+    return full_path
+
+
+POSENET_SHARED_LIB = get_posenet_lib()
 
 
 class KeypointType(enum.IntEnum):
@@ -142,9 +153,7 @@ class PoseEngine():
     def ParseOutput(self, scale, inf_time):
         """Parses interpreter output tensors and returns decoded poses."""
         keypoints = self.get_output_tensor(0)
-        # print('keypoints:', keypoints)
         keypoint_scores = self.get_output_tensor(1)
-        # print('kp_scores:', keypoint_scores)
         pose_scores = self.get_output_tensor(2)
         print('pose_scores:', pose_scores)
         num_poses = self.get_output_tensor(3)
