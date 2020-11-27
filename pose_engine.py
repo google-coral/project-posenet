@@ -90,6 +90,21 @@ class PoseEngine():
                  ' This model has {}.'.format(self._input_tensor_shape)))
         _, self._input_height, self._input_width, self._input_depth = self.get_input_tensor_shape()
         self._input_type = self._interpreter.get_input_details()[0]['dtype']
+        self._inf_time = None
+
+    def run_inference(self, input_data):
+        start = time.perf_counter()
+        input_details = self._interpreter.get_input_details()
+        input_tensor = np.arange(
+            self._input_height * self._input_width * self._input_depth)
+        input_tensor = np.frombuffer(input_data, dtype=self._input_type)
+        input_tensor = np.reshape(
+            input_tensor, (self._input_height, self._input_width, self._input_depth))
+        input_tensor = np.expand_dims(input_tensor, axis=0)
+        self._interpreter.set_tensor(input_details[0]['index'], input_tensor)
+        self._interpreter.invoke()
+        self._inf_time = time.perf_counter() - start
+        return self._inf_time
 
     def DetectPosesInImage(self, img):
         """Detects poses in a given image.
@@ -105,7 +120,6 @@ class PoseEngine():
         image_width, image_height = img.size
         resized_image = img.resize(
             (self._input_width, self._input_height), Image.NEAREST)
-        print('resized_image:', resized_image.size)
         scale = min(self._input_width / image_width,
                     self._input_height / image_height)
         start = time.perf_counter()
@@ -120,9 +134,9 @@ class PoseEngine():
 
         self._interpreter.set_tensor(input_details[0]['index'], input_data)
         self._interpreter.invoke()
-        inf_time = time.perf_counter() - start
-        print("Inference Time:", inf_time)
-        return self.ParseOutput(scale, inf_time)
+        self._inf_time = time.perf_counter() - start
+        print("Inference Time:", self._inf_time)
+        return self.ParseOutput(scale)
 
     def get_input_tensor_shape(self):
         """Returns input tensor shape."""
@@ -133,7 +147,7 @@ class PoseEngine():
         return np.squeeze(self._interpreter.tensor(
             self._interpreter.get_output_details()[idx]['index'])())
 
-    def ParseOutput(self, scale, inf_time):
+    def ParseOutput(self, scale):
         """Parses interpreter output tensors and returns decoded poses."""
         keypoints = self.get_output_tensor(0)
         keypoint_scores = self.get_output_tensor(1)
@@ -152,4 +166,4 @@ class PoseEngine():
                     Point(x, y), keypoint_scores[i, j])
             poses.append(Pose(pose_keypoints, pose_score))
 
-        return poses, inf_time
+        return poses, self._inf_time
