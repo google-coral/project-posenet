@@ -36,10 +36,11 @@ for pose in poses:
         continue
     print('\nPose Score: ', pose.score)
     for label, keypoint in pose.keypoints.items():
-        print('  ---%-20s x=%-4d y=%-4d score=%.1f' %
+        print('  %-20s x=%-4d y=%-4d score=%.1f' %
               (label, keypoint.point[1], keypoint.point[0], keypoint.score))
         if keypoint.score > 0.5:
             x, y = keypoint.point
-            draw.ellipse((x-3, y-3, x+3, y+3), fill=(0, 255, 0, 0))
+            r = 3
+            draw.ellipse((x-r, y-r, x+r, y+r), fill=(0, 255, 0, 0))
 
 pil_image.show()

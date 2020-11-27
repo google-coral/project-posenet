@@ -26,25 +26,8 @@ import time
 import enum
 
 
-EDGETPU_SHARED_LIB = {
-    'Linux': 'libedgetpu.so.1',
-    'Darwin': 'libedgetpu.1.dylib',
-    'Windows': 'edgetpu.dll'
-}[platform.system()]
-
-
-def get_posenet_lib():
-    arch = platform.processor()
-    if arch == 'x86_64':
-        full_path = 'posenet_lib/k8/posenet_decoder.so'
-    elif arch == 'aarch64':
-        full_path = 'posenet_lib/aarch64/posenet_decoder.so'
-    else:
-        full_path = 'posenet_lib/armv7l/posenet_decoder.so'
-    return full_path
-
-
-POSENET_SHARED_LIB = get_posenet_lib()
+EDGETPU_SHARED_LIB = 'libedgetpu.so.1'
+POSENET_SHARED_LIB = 'posenet_lib/' + os.uname().machine + '/posenet_decoder.so'
 
 
 class KeypointType(enum.IntEnum):
@@ -93,7 +76,7 @@ class PoseEngine():
         edgetpu_delegate = load_delegate(EDGETPU_SHARED_LIB)
         posenet_decoder_delegate = load_delegate(POSENET_SHARED_LIB)
         self._interpreter = Interpreter(
-            model_path, experimental_delegates=[posenet_decoder_delegate, edgetpu_delegate])
+            model_path, experimental_delegates=[edgetpu_delegate, posenet_decoder_delegate])
         self._interpreter.allocate_tensors()
 
         self._mirror = mirror
