@@ -94,9 +94,9 @@ class PoseEngine():
         self._inf_time = 0
 
     def run_inference(self, input_data):
-        start = time.perf_counter()
+        start = time.monotonic()
         edgetpu.run_inference(self._interpreter, input_data)
-        self._inf_time = time.perf_counter() - start
+        self._inf_time = time.monotonic() - start
         return self._inf_time
 
     def DetectPosesInImage(self, img):

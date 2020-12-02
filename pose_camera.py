@@ -150,7 +150,7 @@ def main():
 
         svg_canvas = svgwrite.Drawing('', size=src_size)
         start_time = time.monotonic()
-        outputs, inference_time = engine.ParseOutput(1)
+        outputs, inference_time = engine.ParseOutput()
         end_time = time.monotonic()
         n += 1
         sum_process_time += 1000 * (end_time - start_time)
