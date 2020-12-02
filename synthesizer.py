@@ -114,7 +114,7 @@ def main():
   def render_overlay(engine, output, src_size, inference_box):
     nonlocal prev_notes
     svg_canvas = svgwrite.Drawing('', size=src_size)
-    outputs, inference_time = engine.ParseOutput(output)
+    outputs, inference_time = engine.ParseOutput()
 
     poses = [pose for pose in (Pose(pose, 0.2) for pose in outputs)
              if pose.keypoints]
