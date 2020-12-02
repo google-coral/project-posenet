@@ -24,27 +24,28 @@ import svgwrite
 import gstreamer
 
 from pose_engine import PoseEngine
+from pose_engine import KeypointType
 
 EDGES = (
-    ('nose', 'left eye'),
-    ('nose', 'right eye'),
-    ('nose', 'left ear'),
-    ('nose', 'right ear'),
-    ('left ear', 'left eye'),
-    ('right ear', 'right eye'),
-    ('left eye', 'right eye'),
-    ('left shoulder', 'right shoulder'),
-    ('left shoulder', 'left elbow'),
-    ('left shoulder', 'left hip'),
-    ('right shoulder', 'right elbow'),
-    ('right shoulder', 'right hip'),
-    ('left elbow', 'left wrist'),
-    ('right elbow', 'right wrist'),
-    ('left hip', 'right hip'),
-    ('left hip', 'left knee'),
-    ('right hip', 'right knee'),
-    ('left knee', 'left ankle'),
-    ('right knee', 'right ankle'),
+    (KeypointType.NOSE, KeypointType.LEFT_EYE),
+    (KeypointType.NOSE, KeypointType.RIGHT_EYE),
+    (KeypointType.NOSE, KeypointType.LEFT_EAR),
+    (KeypointType.NOSE, KeypointType.RIGHT_EAR),
+    (KeypointType.LEFT_EAR, KeypointType.LEFT_EYE),
+    (KeypointType.RIGHT_EAR, KeypointType.RIGHT_EYE),
+    (KeypointType.LEFT_EYE, KeypointType.RIGHT_EYE),
+    (KeypointType.LEFT_SHOULDER, KeypointType.RIGHT_SHOULDER),
+    (KeypointType.LEFT_SHOULDER, KeypointType.LEFT_ELBOW),
+    (KeypointType.LEFT_SHOULDER, KeypointType.LEFT_HIP),
+    (KeypointType.RIGHT_SHOULDER, KeypointType.RIGHT_ELBOW),
+    (KeypointType.RIGHT_SHOULDER, KeypointType.RIGHT_HIP),
+    (KeypointType.LEFT_ELBOW, KeypointType.LEFT_WRIST),
+    (KeypointType.RIGHT_ELBOW, KeypointType.RIGHT_WRIST),
+    (KeypointType.LEFT_HIP, KeypointType.RIGHT_HIP),
+    (KeypointType.LEFT_HIP, KeypointType.LEFT_KNEE),
+    (KeypointType.RIGHT_HIP, KeypointType.RIGHT_KNEE),
+    (KeypointType.LEFT_KNEE, KeypointType.LEFT_ANKLE),
+    (KeypointType.RIGHT_KNEE, KeypointType.RIGHT_ANKLE),
 )
 
 
@@ -63,8 +64,9 @@ def draw_pose(dwg, pose, src_size, inference_box, color='yellow', threshold=0.2)
     if keypoint.score < threshold:
       continue
     # Offset and scale to source coordinate space.
-    kp_y = int((keypoint.point[1] - box_y) * scale_y)
     kp_x = int((keypoint.point[0] - box_x) * scale_x)
+    kp_y = int((keypoint.point[1] - box_y) * scale_y)
+
 
     xys[label] = (kp_x, kp_y)
     dwg.add(dwg.circle(center=(int(kp_x), int(kp_y)), r=5,

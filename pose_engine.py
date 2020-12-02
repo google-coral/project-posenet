@@ -30,7 +30,6 @@ import enum
 EDGETPU_SHARED_LIB = 'libedgetpu.so.1'
 POSENET_SHARED_LIB = 'posenet_lib/' + os.uname().machine + '/posenet_decoder.so'
 
-
 class KeypointType(enum.IntEnum):
   """Pose kepoints."""
   NOSE = 0
@@ -50,7 +49,6 @@ class KeypointType(enum.IntEnum):
   RIGHT_KNEE = 14
   LEFT_ANKLE = 15
   RIGHT_ANKLE = 16
-
 
 Point = collections.namedtuple('Point', ['x', 'y'])
 Point.distance = lambda a, b: math.sqrt((a.x - b.x)**2 + (a.y - b.y)**2)
