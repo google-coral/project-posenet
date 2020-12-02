@@ -14,6 +14,7 @@
 
 from tflite_runtime.interpreter import load_delegate
 from tflite_runtime.interpreter import Interpreter
+from pycoral.utils import edgetpu
 from PIL import Image
 
 import numpy as np
@@ -90,19 +91,11 @@ class PoseEngine():
                  ' This model has {}.'.format(self._input_tensor_shape)))
         _, self._input_height, self._input_width, self._input_depth = self.get_input_tensor_shape()
         self._input_type = self._interpreter.get_input_details()[0]['dtype']
-        self._inf_time = None
+        self._inf_time = 0
 
     def run_inference(self, input_data):
         start = time.perf_counter()
-        input_details = self._interpreter.get_input_details()
-        input_tensor = np.arange(
-            self._input_height * self._input_width * self._input_depth)
-        input_tensor = np.frombuffer(input_data, dtype=self._input_type)
-        input_tensor = np.reshape(
-            input_tensor, (self._input_height, self._input_width, self._input_depth))
-        input_tensor = np.expand_dims(input_tensor, axis=0)
-        self._interpreter.set_tensor(input_details[0]['index'], input_tensor)
-        self._interpreter.invoke()
+        edgetpu.run_inference(self._interpreter, input_data)
         self._inf_time = time.perf_counter() - start
         return self._inf_time
 
@@ -116,12 +109,7 @@ class PoseEngine():
         Args:
           img: a PIL image to detect poses on
         """
-        input_details = self._interpreter.get_input_details()
-        image_width, image_height = img.size
-        resized_image = img.resize(
-            (self._input_width, self._input_height), Image.NEAREST)
-        scale = min(self._input_width / image_width,
-                    self._input_height / image_height)
+        '''
         start = time.perf_counter()
 
         if self._input_type is np.float32:
@@ -135,8 +123,20 @@ class PoseEngine():
         self._interpreter.set_tensor(input_details[0]['index'], input_data)
         self._interpreter.invoke()
         self._inf_time = time.perf_counter() - start
-        print("Inference Time:", self._inf_time)
-        return self.ParseOutput(scale)
+        '''
+        input_details = self._interpreter.get_input_details()
+        image_width, image_height = img.size
+        resized_image = img.resize(
+            (self._input_width, self._input_height), Image.NEAREST)
+        if self._input_type is np.float32:
+            # Floating point versions of posenet take image data in [-1,1] range.
+            input_data = np.float32(resized_image) / 128.0 - 1.0
+        else:
+            # Assuming to be uint8
+            input_data = np.asarray(resized_image)
+        input_data = np.expand_dims(resized_image, axis=0)
+        self.run_inference(input_data.flatten())
+        return self.ParseOutput()
 
     def get_input_tensor_shape(self):
         """Returns input tensor shape."""
@@ -147,23 +147,19 @@ class PoseEngine():
         return np.squeeze(self._interpreter.tensor(
             self._interpreter.get_output_details()[idx]['index'])())
 
-    def ParseOutput(self, scale):
+    def ParseOutput(self):
         """Parses interpreter output tensors and returns decoded poses."""
         keypoints = self.get_output_tensor(0)
         keypoint_scores = self.get_output_tensor(1)
         pose_scores = self.get_output_tensor(2)
-        print('pose_scores:', pose_scores)
         num_poses = self.get_output_tensor(3)
-        print('num_poses:', num_poses)
-
         poses = []
         for i in range(int(num_poses)):
             pose_score = pose_scores[i]
             pose_keypoints = {}
             for j, point in enumerate(keypoints[i]):
-                y, x = point / scale
+                x, y = point
                 pose_keypoints[KeypointType(j)] = Keypoint(
                     Point(x, y), keypoint_scores[i, j])
             poses.append(Pose(pose_keypoints, pose_score))
-
         return poses, self._inf_time

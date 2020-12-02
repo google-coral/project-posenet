@@ -66,7 +66,7 @@ class Pose:
     self.id = None
     self.keypoints = {label: k for label, k in pose.keypoints.items()
                       if k.score > threshold}
-    self.center = (np.mean([k.yx for k in self.keypoints.values()], axis=0)
+    self.center = (np.mean([k.point for k in self.keypoints.values()], axis=0)
                    if self.keypoints else None)
 
   def quadrance(self, other):
@@ -128,8 +128,8 @@ def main():
         continue
 
       identity = IDENTITIES[pose.id % len(IDENTITIES)]
-      left = 1 - left.yx[0] / engine.image_height
-      right = 1 - right.yx[0] / engine.image_height
+      left = 1 - left.point[0] / engine.image_height
+      right = 1 - right.point[0] / engine.image_height
       velocity = int(left * 100)
       i = int(right * identity.extent)
       note = (identity.base_note
