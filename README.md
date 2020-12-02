@@ -78,12 +78,16 @@ a keypoint has been detected.
 
 ## Examples in this repo
 
-NOTE: PoseNet relies on the latest Coral API (2.12.2) and for the Dev Board the latest system image - please update your
-system before running these examples. For more information on updating see:
+NOTE: PoseNet relies on the latest Pycoral API, tflite_runtime API, and libedgetpu1-std or libedgetpu1-max:
+  * For [pycoral](https://coral.ai/software#pycoral-api) (v 1.0.0)
+  * For [tflite_runtime](https://www.tensorflow.org/lite/guide/python#install_just_the_tensorflow_lite_interpreter) (v1.15.0)
+  * For [libedgetpu](https://coral.ai/software#debian-packages), please install the debian package corresponding to the requencies that you want. More info here: https://coral.ai/docs/pcie-parameters/#use-dynamic-frequency-scaling
+
+Please also update your system before running these examples. For more information on updating see:
   * For [Coral DevBoard](https://coral.withgoogle.com/docs/dev-board/get-started/#update-the-mendel-software)
   * For [USB Accelerator](https://coral.withgoogle.com/docs/accelerator/get-started/#set-up-on-linux-or-raspberry-pi)
 
-To install all the requirements, simply run 
+To install all other requirements for thirdparty libraries, simply run 
 
 ```
 sh install_requirements.sh
