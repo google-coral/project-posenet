@@ -107,21 +107,6 @@ class PoseEngine():
     Args:
       img: a PIL image to detect poses on
     """
-    '''
-        start = time.perf_counter()
-
-        if self._input_type is np.float32:
-            # Floating point versions of posenet take image data in [-1,1] range.
-            input_data = np.float32(resized_image) / 128.0 - 1.0
-        else:
-            # Assuming to be uint8
-            input_data = np.asarray(resized_image)
-        input_data = np.expand_dims(resized_image, axis=0)
-
-        self._interpreter.set_tensor(input_details[0]['index'], input_data)
-        self._interpreter.invoke()
-        self._inf_time = time.perf_counter() - start
-        '''
     input_details = self._interpreter.get_input_details()
     image_width, image_height = img.size
     resized_image = img.resize(
