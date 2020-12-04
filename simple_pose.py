@@ -20,15 +20,11 @@ from PIL import ImageDraw
 from pose_engine import PoseEngine
 
 
-os.system('wget https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/'
-          'Hindu_marriage_ceremony_offering.jpg/'
-          '640px-Hindu_marriage_ceremony_offering.jpg -O /tmp/couple.jpg')
-
-pil_image = Image.open('/tmp/couple.jpg')
+pil_image = Image.open('test_data/couple.jpg').convert('RGB')
 engine = PoseEngine(
     'models/mobilenet/posenet_mobilenet_v1_075_481_641_quant_decoder_edgetpu.tflite')
 poses, inference_time = engine.DetectPosesInImage(pil_image)
-print('Inference time: %.fms' % inference_time)
+print('Inference time: %.f ms' % (inference_time*1000))
 
 draw = ImageDraw.Draw(pil_image)
 for pose in poses:

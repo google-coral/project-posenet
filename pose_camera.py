@@ -156,7 +156,7 @@ def main():
     end_time = time.monotonic()
     n += 1
     sum_process_time += 1000 * (end_time - start_time)
-    sum_inference_time += inference_time
+    sum_inference_time += inference_time * 1000
 
     avg_inference_time = sum_inference_time / n
     text_line = 'PoseNet: %.1fms (%.2f fps) TrueFPS: %.2f Nposes %d' % (
