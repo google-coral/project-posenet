@@ -33,8 +33,8 @@ POSENET_SHARED_LIB = os.path.join(
 def generate_models():
   for path, subdirs, files in os.walk(MODEL_DIR):
     for name in files:
-      model_path = os.path.join(path, name)
-      if 'edgetpu' in model_path:
+      if 'component' not in path:
+        model_path = os.path.join(path, name)
         yield model_path
 
 
@@ -69,7 +69,7 @@ class PoseEngineAccuracyTest(unittest.TestCase):
             if keypoint.score > 0.5:
               x, y = keypoint.point
               draw.ellipse((x-3, y-3, x+3, y+3), fill=(0, 255, 0, 0))
-      resized_image.show()
+      # resized_image.show()
 
 
 def main():
