@@ -1,8 +1,23 @@
+# Lint as: python3
+# Copyright 2020 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""Utilities for visualizing posenet results."""
+
 from pose_engine import PoseEngine, KeypointType
 from PIL import Image
 from PIL import ImageDraw
 import numpy as np
-import unittest
 import sys
 import os
 import csv
@@ -19,6 +34,8 @@ TEST_IMAGE = os.path.join(PROJECT_SOURCE_DIR, 'test_data/test_couple.jpg')
 
 
 def generate_models():
+  """Returns models from MODEL_DIR.
+  """
   for path, subdirs, files in os.walk(MODEL_DIR):
     for name in files:
       if 'component' not in path:
@@ -27,6 +44,11 @@ def generate_models():
 
 
 def write_to_csv(model_name, poses):
+  """Write results of posenet model to a corresponding csv file.
+  Args:
+    model_name: The name of the model.
+    poses: The results of the model.
+  """
   csv_file_name = os.path.join(
       TEST_DATA_DIR, model_name.split('.')[0] + '_reference.csv')
   print('Writing results to:', csv_file_name)
@@ -49,6 +71,13 @@ def write_to_csv(model_name, poses):
 
 
 def visualize_results_from_model(model_name, image, input_shape, poses):
+  """Visualize inference results from a model.
+  Args:
+    model_name: the name of the model.
+    image: the image that the result was from.
+    input_shape: the model's input shape.
+    poses: the results from the model.
+  """
   print('Visualizing model results for:', model_name)
   resized_image = image.resize(
       (input_shape[1], input_shape[0]), Image.NEAREST)
@@ -63,7 +92,14 @@ def visualize_results_from_model(model_name, image, input_shape, poses):
   resized_image.show()
 
 
-def visualize_reference_results(model_name, image, input_shape):
+def visualize_results_from_reference_file(model_name, image, input_shape):
+  """Visualize the reference result from a model.
+  Args:
+    model_name: the name of the model.
+    image: the image that the result was from.
+    input_shape: the model's input shape.
+  """
+
   resized_image = image.resize(
       (input_shape[1], input_shape[0]), Image.NEAREST)
   draw = ImageDraw.Draw(resized_image)
@@ -80,7 +116,13 @@ def visualize_reference_results(model_name, image, input_shape):
   resized_image.show()
 
 
-def generate_results(write_csv=False, visualize_model_results=False, visualize_reference_result=False):
+def generate_results(write_csv=False, visualize_model_results=False, visualize_reference_results=False):
+  """Generates results form a model (both from reference results or from new inference).
+  Args:
+    write_csv: Whether to write new inference results to a csv file or not.
+    visualize_model_results: Whether to visualize the new results or not.
+    visualize_reference_result: Whether to visualize the reference results or not.
+  """
   image = Image.open(TEST_IMAGE).convert('RGB')
   for model_path, model_name in generate_models():
     engine = PoseEngine(model_path)
@@ -90,8 +132,8 @@ def generate_results(write_csv=False, visualize_model_results=False, visualize_r
       write_to_csv(model_name, poses)
     if visualize_model_results:
       visualize_results_from_model(model_name, image, input_shape, poses)
-    if visualize_reference_result:
-      visualize_reference_results(model_name, image, input_shape)
+    if visualize_reference_results:
+      visualize_results_from_reference_file(model_name, image, input_shape)
 
 
 def test_utils_main():
