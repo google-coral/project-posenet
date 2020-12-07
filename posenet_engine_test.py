@@ -17,63 +17,55 @@
 from pose_engine import PoseEngine, KeypointType
 from PIL import Image
 from PIL import ImageDraw
+import test_utils
 import numpy as np
 import unittest
 import sys
 import os
 
-PROJECT_SOURCE_DIR = os.getcwd()
-sys.path.append(PROJECT_SOURCE_DIR)
-MODEL_DIR = os.path.join(PROJECT_SOURCE_DIR, 'models')
-EDGETPU_SHARED_LIB = 'libedgetpu.so.1'
-POSENET_SHARED_LIB = os.path.join(
-    PROJECT_SOURCE_DIR, 'posenet_lib', os.uname().machine, 'posenet_decoder.so')
-
-
-def generate_models():
-  for path, subdirs, files in os.walk(MODEL_DIR):
-    for name in files:
-      if 'component' not in path:
-        model_path = os.path.join(path, name)
-        yield model_path
-
-
-def get_random_inputs(input_shape):
-  return np.random.random(input_shape).astype(np.uint8)
+test_image = os.path.join(os.getcwd(), 'test_data/test_couple.jpg')
 
 
 class PoseEngineAccuracyTest(unittest.TestCase):
 
   def test_runinference_all_models(self):
-    for model_path in generate_models():
+    for model_path, _ in test_utils.generate_models():
       print('Testing inference for:', model_path)
       engine = PoseEngine(model_path)
       image_shape = engine.get_input_tensor_shape()[1:]
-      fake_image = Image.fromarray(get_random_inputs(image_shape))
+      fake_image = Image.fromarray(test_utils.get_random_inputs(image_shape))
       engine.DetectPosesInImage(fake_image)
 
   def test_model_accuracy(self):
-    test_image = os.path.join(PROJECT_SOURCE_DIR, 'test_data/couple.jpg')
     image = Image.open(test_image).convert('RGB')
-    for model_path in generate_models():
+    for model_path, model_name in test_utils.generate_models():
       print('Testing Accuracy for: ', model_path)
       engine = PoseEngine(model_path)
-      poses, _ = engine.DetectPosesInImage(image)
-      input_shape = engine.get_input_tensor_shape()[1:3]
-      resized_image = image.resize(
-          (input_shape[1], input_shape[0]), Image.NEAREST)
-      draw = ImageDraw.Draw(resized_image)
-      for pose in poses:
-        if pose.score > 0.1:
-          for label, keypoint in pose.keypoints.items():
-            if keypoint.score > 0.5:
-              x, y = keypoint.point
-              draw.ellipse((x-3, y-3, x+3, y+3), fill=(0, 255, 0, 0))
-      # resized_image.show()
+      model_pose_result, _ = engine.DetectPosesInImage(image)
+      reference_pose_scores, reference_keypoints = test_utils.parse_reference_results(
+          model_name)
+      score_delta = 0.1  # Allows score to change within 1 decimal place.
+      pixel_delta = 4.0  # Allows placement changes of 4 pixels.
+      pose_idx = 0
+      keypoint_idx = 0
+      for model_pose in model_pose_result:
+        self.assertAlmostEqual(model_pose.score,
+                               reference_pose_scores[pose_idx], delta=score_delta)
+        for label, model_keypoint in model_pose.keypoints.items():
+          reference_keypoint = reference_keypoints[keypoint_idx]
+          self.assertAlmostEqual(model_keypoint.score,
+                                 reference_keypoint.score, delta=score_delta)
+          self.assertAlmostEqual(
+              model_keypoint.point[0], reference_keypoint.point[0], delta=pixel_delta)
+          self.assertAlmostEqual(
+              model_keypoint.point[1], reference_keypoint.point[1], delta=pixel_delta)
+          keypoint_idx += 1
+        pose_idx += 1
 
 
-def main():
+def test_main():
   unittest.main()
 
 
-main()
+if __name__ == '__main__':
+  test_main()
