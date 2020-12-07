@@ -354,19 +354,13 @@ def run_pipeline(inf_callback, render_callback, src_size,
   else:
     SRC_CAPS = 'video/x-raw,width={width},height={height},framerate=30/1'
   PIPELINE = 'v4l2src device=%s ! {src_caps}' % videosrc
-  if detectCoralDevBoard():
-    scale_caps = None
-    PIPELINE += """ ! decodebin ! glupload ! glvideoflip video-direction={direction} ! tee name=t
-               t. ! {leaky_q} ! freezer name=freezer ! glsvgoverlaysink name=overlaysink
-               t. ! {leaky_q} ! glfilterbin filter=glbox name=glbox ! {sink_caps} ! {sink_element}
-            """
-  else:  # raspberry pi or linux
-    scale = min(inference_size[0] / src_size[0],
-                inference_size[1] / src_size[1])
-    scale = tuple(int(x * scale) for x in src_size)
-    scale_caps = 'video/x-raw,width={width},height={height}'.format(
-        width=scale[0], height=scale[1])
-    PIPELINE += """ ! decodebin ! videoflip video-direction={direction} ! tee name=t
+
+  scale = min(inference_size[0] / src_size[0],
+              inference_size[1] / src_size[1])
+  scale = tuple(int(x * scale) for x in src_size)
+  scale_caps = 'video/x-raw,width={width},height={height}'.format(
+      width=scale[0], height=scale[1])
+  PIPELINE += """ ! decodebin ! videoflip video-direction={direction} ! tee name=t
                t. ! {leaky_q} ! videoconvert ! freezer name=freezer ! rsvgoverlay name=overlay
                   ! videoconvert ! autovideosink
                t. ! {leaky_q} ! videoconvert ! videoscale ! {scale_caps} ! videobox name=box autocrop=true
