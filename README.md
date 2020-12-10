@@ -242,21 +242,22 @@ And you should see an output like this:
 Inference time: 14 ms
 
 Pose Score:  0.60698134
-  KeypointType.NOSE    x=211  y=152  score=1.0
-  KeypointType.LEFT_EYE x=224  y=138  score=1.0
-  KeypointType.RIGHT_EYE x=199  y=136  score=1.0
-  KeypointType.LEFT_EAR x=245  y=135  score=1.0
-  KeypointType.RIGHT_EAR x=183  y=129  score=0.8
-  KeypointType.LEFT_SHOULDER x=269  y=169  score=0.7
-  KeypointType.RIGHT_SHOULDER x=160  y=173  score=1.0
-  KeypointType.LEFT_ELBOW x=281  y=255  score=0.6
-  KeypointType.RIGHT_ELBOW x=153  y=253  score=1.0
-  KeypointType.LEFT_WRIST x=237  y=333  score=0.6
-  KeypointType.RIGHT_WRIST x=163  y=305  score=0.5
-  KeypointType.LEFT_HIP x=256  y=318  score=0.2
-  KeypointType.RIGHT_HIP x=171  y=311  score=0.2
-  KeypointType.LEFT_KNEE x=221  y=342  score=0.3
-  KeypointType.RIGHT_KNEE x=209  y=340  score=0.3
-  KeypointType.LEFT_ANKLE x=188  y=408  score=0.2
-  KeypointType.RIGHT_ANKLE x=189  y=410  score=0.2
+  NOSE                 x=211  y=152  score=1.0
+  LEFT_EYE             x=224  y=138  score=1.0
+  RIGHT_EYE            x=199  y=136  score=1.0
+  LEFT_EAR             x=245  y=135  score=1.0
+  RIGHT_EAR            x=183  y=129  score=0.8
+  LEFT_SHOULDER        x=269  y=169  score=0.7
+  RIGHT_SHOULDER       x=160  y=173  score=1.0
+  LEFT_ELBOW           x=281  y=255  score=0.6
+  RIGHT_ELBOW          x=153  y=253  score=1.0
+  LEFT_WRIST           x=237  y=333  score=0.6
+  RIGHT_WRIST          x=163  y=305  score=0.5
+  LEFT_HIP             x=256  y=318  score=0.2
+  RIGHT_HIP            x=171  y=311  score=0.2
+  LEFT_KNEE            x=221  y=342  score=0.3
+  RIGHT_KNEE           x=209  y=340  score=0.3
+  LEFT_ANKLE           x=188  y=408  score=0.2
+  RIGHT_ANKLE          x=189  y=410  score=0.2
+
 ```
