@@ -21,35 +21,35 @@ BACKGROUND_DELAY = 2  # seconds
 
 
 def main():
-  background_locked = False
-  timer_time = time.monotonic()
+    background_locked = False
+    timer_time = time.monotonic()
 
-  def run_inference(engine, input_tensor):
-    return engine.run_inference(input_tensor)
+    def run_inference(engine, input_tensor):
+        return engine.run_inference(input_tensor)
 
-  def render_overlay(engine, output, src_size, inference_box):
-    nonlocal timer_time, background_locked
-    svg_canvas = svgwrite.Drawing('', size=src_size)
-    outputs, inference_time = engine.ParseOutput()
-    now_time = time.monotonic()
+    def render_overlay(engine, output, src_size, inference_box):
+        nonlocal timer_time, background_locked
+        svg_canvas = svgwrite.Drawing('', size=src_size)
+        outputs, inference_time = engine.ParseOutput()
+        now_time = time.monotonic()
 
-    if not background_locked:
-      print('Waiting for everyone to leave the frame...')
-      pose_camera.shadow_text(svg_canvas, 10, 20,
-                              'Waiting for everyone to leave the frame...')
-      if outputs:  # frame still has people in it, restart timer
-        timer_time = now_time
-      elif now_time > timer_time + BACKGROUND_DELAY:  # frame has been empty long enough
-        background_locked = True
-        print('Background set.')
+        if not background_locked:
+            print('Waiting for everyone to leave the frame...')
+            pose_camera.shadow_text(svg_canvas, 10, 20,
+                                    'Waiting for everyone to leave the frame...')
+            if outputs:  # frame still has people in it, restart timer
+                timer_time = now_time
+            elif now_time > timer_time + BACKGROUND_DELAY:  # frame has been empty long enough
+                background_locked = True
+                print('Background set.')
 
-    for pose in outputs:
-      pose_camera.draw_pose(svg_canvas, pose, src_size, inference_box)
+        for pose in outputs:
+            pose_camera.draw_pose(svg_canvas, pose, src_size, inference_box)
 
-    return (svg_canvas.tostring(), background_locked)
+        return (svg_canvas.tostring(), background_locked)
 
-  pose_camera.run(run_inference, render_overlay)
+    pose_camera.run(run_inference, render_overlay)
 
 
 if __name__ == '__main__':
-  main()
+    main()
