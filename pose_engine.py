@@ -12,19 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from tflite_runtime.interpreter import load_delegate
-from tflite_runtime.interpreter import Interpreter
 from pycoral.utils import edgetpu
 from PIL import Image
+from tflite_runtime.interpreter import load_delegate
+from tflite_runtime.interpreter import Interpreter
 
-import numpy as np
 import collections
-import math
-import sys
-import platform
-import os
-import time
 import enum
+import math
+import numpy as np
+import os
+import platform
+import sys
+import time
 
 
 EDGETPU_SHARED_LIB = 'libedgetpu.so.1'
@@ -100,7 +100,7 @@ class PoseEngine():
         start = time.monotonic()
         edgetpu.run_inference(self._interpreter, input_data)
         self._inf_time = time.monotonic() - start
-        return self._inf_time 
+        return (self._inf_time * 1000)
 
     def DetectPosesInImage(self, img):
         """Detects poses in a given image.

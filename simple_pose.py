@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import numpy as np
+from pose_engine import PoseEngine
 from PIL import Image
 from PIL import ImageDraw
-from pose_engine import PoseEngine
 
+import numpy as np
+import os
 
 os.system('wget https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/'
           'Hindu_marriage_ceremony_offering.jpg/'

@@ -79,15 +79,15 @@ a keypoint has been detected.
 ## Examples in this repo
 
 NOTE: PoseNet relies on the latest Pycoral API, tflite_runtime API, and libedgetpu1-std or libedgetpu1-max:
-  * For [pycoral](https://coral.ai/software#pycoral-api) (v 1.0.0)
-  * For [tflite_runtime](https://www.tensorflow.org/lite/guide/python#install_just_the_tensorflow_lite_interpreter) (v1.15.0)
-  * For [libedgetpu](https://coral.ai/software#debian-packages), please install the debian package corresponding to the requencies that you want. More info here: https://coral.ai/docs/pcie-parameters/#use-dynamic-frequency-scaling
+  * For [pycoral](https://coral.ai/software#pycoral-api)
+  * For [tflite_runtime](https://www.tensorflow.org/lite/guide/python#install_just_the_tensorflow_lite_interpreter)
+  * For [libedgetpu](https://coral.ai/software#debian-packages), please install the [debian package](https://coral.ai/software#debian-packages) or [shared libraries](https://coral.ai/software#edgetpu-runtime). You can use either Max or Standard clock speed (these only apply for USB devices).
 
 Please also update your system before running these examples. For more information on updating see:
   * For [Coral DevBoard](https://coral.withgoogle.com/docs/dev-board/get-started/#update-the-mendel-software)
   * For [USB Accelerator](https://coral.withgoogle.com/docs/accelerator/get-started/#set-up-on-linux-or-raspberry-pi)
 
-To install all other requirements for thirdparty libraries, simply run 
+To install all other requirements for third party libraries, simply run 
 
 ```
 sh install_requirements.sh
@@ -219,8 +219,7 @@ os.system('wget https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/'
 pil_image = Image.open('/tmp/couple.jpg').convert('RGB')
 engine = PoseEngine(
     'models/mobilenet/posenet_mobilenet_v1_075_481_641_quant_decoder_edgetpu.tflite')
-poses, inference_time = engine.DetectPosesInImage(pil_image)
-print('Inference time: %.f ms' % (inference_time * 1000))
+poses, _ = engine.DetectPosesInImage(pil_image)
 
 for pose in poses:
     if pose.score < 0.4: continue

@@ -13,13 +13,13 @@
 # limitations under the License.
 
 from gi.repository import GLib, GObject, Gst, GstBase, GstVideo, Gtk
+import gi
+import numpy as np
 import sys
 import threading
 import time
 
-import numpy as np
 
-import gi
 gi.require_version('Gst', '1.0')
 gi.require_version('GstBase', '1.0')
 gi.require_version('GstVideo', '1.0')
@@ -351,6 +351,7 @@ def run_pipeline(inf_callback, render_callback, src_size,
                   ! {sink_caps} ! {sink_element}
             """
 
+    #TODO: Fix pipeline for the dev board.
     SINK_ELEMENT = 'appsink name=appsink emit-signals=true max-buffers=1 drop=true'
     SINK_CAPS = 'video/x-raw,format=RGB,width={width},height={height}'
     LEAKY_Q = 'queue max-size-buffers=1 leaky=downstream'

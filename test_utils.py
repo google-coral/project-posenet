@@ -17,11 +17,12 @@
 from pose_engine import PoseEngine, Pose, Keypoint, Point
 from PIL import Image
 from PIL import ImageDraw
-import numpy as np
-import sys
-import os
-import csv
+
 import argparse
+import csv
+import numpy as np
+import os
+import sys
 
 PROJECT_SOURCE_DIR = os.getcwd()
 sys.path.append(PROJECT_SOURCE_DIR)
@@ -67,7 +68,7 @@ def write_to_csv(model_name, poses):
             line_dict['pose_id'] = pose_id
             line_dict['pose_score'] = pose.score
             for label, keypoint in pose.keypoints.items():
-                line_dict['keypoint_label'] = label
+                line_dict['keypoint_label'] = label.name
                 line_dict['keypoint_score'] = keypoint.score
                 line_dict['keypoint_x'] = keypoint.point[0]
                 line_dict['keypoint_y'] = keypoint.point[1]

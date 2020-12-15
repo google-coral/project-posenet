@@ -17,25 +17,17 @@
 from pose_engine import PoseEngine, KeypointType
 from PIL import Image
 from PIL import ImageDraw
-import test_utils
+
 import numpy as np
-import unittest
-import sys
 import os
+import sys
+import unittest
+import test_utils
 
 test_image = os.path.join(os.getcwd(), 'test_data/test_couple.jpg')
 
 
 class PoseEngineAccuracyTest(unittest.TestCase):
-
-    def test_runinference_all_models(self):
-        for model_path, _ in test_utils.generate_models():
-            print('Testing inference for:', model_path)
-            engine = PoseEngine(model_path)
-            image_shape = engine.get_input_tensor_shape()[1:]
-            fake_image = Image.fromarray(
-                test_utils.get_random_inputs(image_shape))
-            engine.DetectPosesInImage(fake_image)
 
     def test_model_accuracy(self):
         image = Image.open(test_image).convert('RGB')
@@ -52,7 +44,7 @@ class PoseEngineAccuracyTest(unittest.TestCase):
             for model_pose in model_pose_result:
                 self.assertAlmostEqual(model_pose.score,
                                        reference_pose_scores[pose_idx], delta=score_delta)
-                for label, model_keypoint in model_pose.keypoints.items():
+                for _, model_keypoint in model_pose.keypoints.items():
                     reference_keypoint = reference_keypoints[keypoint_idx]
                     self.assertAlmostEqual(model_keypoint.score,
                                            reference_keypoint.score, delta=score_delta)
