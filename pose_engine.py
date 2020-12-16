@@ -27,6 +27,7 @@ import sys
 import time
 
 
+#TODO: Adds support for window and MAC
 EDGETPU_SHARED_LIB = 'libedgetpu.so.1'
 POSENET_SHARED_LIB = os.path.join(
     'posenet_lib', os.uname().machine, 'posenet_decoder.so')
