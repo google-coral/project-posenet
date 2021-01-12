@@ -30,7 +30,7 @@ def main():
     def render_overlay(engine, output, src_size, inference_box):
         nonlocal timer_time, background_locked
         svg_canvas = svgwrite.Drawing('', size=src_size)
-        outputs, inference_time = engine.ParseOutput(output)
+        outputs, inference_time = engine.ParseOutput()
         now_time = time.monotonic()
 
         if not background_locked:

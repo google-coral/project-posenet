@@ -66,7 +66,7 @@ class Pose:
         self.id = None
         self.keypoints = {label: k for label, k in pose.keypoints.items()
                           if k.score > threshold}
-        self.center = (np.mean([k.yx for k in self.keypoints.values()], axis=0)
+        self.center = (np.mean([k.point for k in self.keypoints.values()], axis=0)
                        if self.keypoints else None)
 
     def quadrance(self, other):
@@ -114,7 +114,7 @@ def main():
     def render_overlay(engine, output, src_size, inference_box):
         nonlocal prev_notes
         svg_canvas = svgwrite.Drawing('', size=src_size)
-        outputs, inference_time = engine.ParseOutput(output)
+        outputs, inference_time = engine.ParseOutput()
 
         poses = [pose for pose in (Pose(pose, 0.2) for pose in outputs)
                  if pose.keypoints]
@@ -127,8 +127,8 @@ def main():
             if not (left and right): continue
 
             identity = IDENTITIES[pose.id % len(IDENTITIES)]
-            left = 1 - left.yx[0] / engine.image_height
-            right = 1 - right.yx[0] / engine.image_height
+            left = 1 - left.point[0] / engine.image_height
+            right = 1 - right.point[0] / engine.image_height
             velocity = int(left * 100)
             i = int(right * identity.extent)
             note = (identity.base_note
@@ -139,7 +139,8 @@ def main():
         for note in prev_notes:
             if note not in velocities: synth.noteoff(*note)
         for note, velocity in velocities.items():
-            if note not in prev_notes: synth.noteon(*note, velocity)
+            if note not in prev_notes:
+                synth.noteon(*note, velocity)
         prev_notes = velocities.keys()
 
         for i, pose in enumerate(poses):

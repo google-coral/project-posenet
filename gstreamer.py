@@ -12,18 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from gi.repository import GLib, GObject, Gst, GstBase, GstVideo, Gtk
+import gi
+import numpy as np
 import sys
 import threading
 import time
 
-import numpy as np
 
-import gi
 gi.require_version('Gst', '1.0')
 gi.require_version('GstBase', '1.0')
 gi.require_version('GstVideo', '1.0')
 gi.require_version('Gtk', '3.0')
-from gi.repository import GLib, GObject, Gst, GstBase, GstVideo, Gtk
 
 Gst.init(None)
 
@@ -337,24 +337,21 @@ def run_pipeline(inf_callback, render_callback, src_size,
         SRC_CAPS = 'image/jpeg,width={width},height={height},framerate=30/1'
     else:
         SRC_CAPS = 'video/x-raw,width={width},height={height},framerate=30/1'
-    PIPELINE = 'v4l2src device=%s ! {src_caps}'%videosrc
-    if detectCoralDevBoard():
-        scale_caps = None
-        PIPELINE += """ ! decodebin ! glupload ! glvideoflip video-direction={direction} ! tee name=t
-               t. ! {leaky_q} ! freezer name=freezer ! glsvgoverlaysink name=overlaysink
-               t. ! {leaky_q} ! glfilterbin filter=glbox name=glbox ! {sink_caps} ! {sink_element}
-            """
-    else:  # raspberry pi or linux
-        scale = min(inference_size[0] / src_size[0], inference_size[1] / src_size[1])
-        scale = tuple(int(x * scale) for x in src_size)
-        scale_caps = 'video/x-raw,width={width},height={height}'.format(width=scale[0], height=scale[1])
-        PIPELINE += """ ! decodebin ! videoflip video-direction={direction} ! tee name=t
+    PIPELINE = 'v4l2src device=%s ! {src_caps}' % videosrc
+
+    scale = min(inference_size[0] / src_size[0],
+                inference_size[1] / src_size[1])
+    scale = tuple(int(x * scale) for x in src_size)
+    scale_caps = 'video/x-raw,width={width},height={height}'.format(
+        width=scale[0], height=scale[1])
+    PIPELINE += """ ! decodebin ! videoflip video-direction={direction} ! tee name=t
                t. ! {leaky_q} ! videoconvert ! freezer name=freezer ! rsvgoverlay name=overlay
                   ! videoconvert ! autovideosink
                t. ! {leaky_q} ! videoconvert ! videoscale ! {scale_caps} ! videobox name=box autocrop=true
                   ! {sink_caps} ! {sink_element}
             """
 
+    #TODO: Fix pipeline for the dev board.
     SINK_ELEMENT = 'appsink name=appsink emit-signals=true max-buffers=1 drop=true'
     SINK_CAPS = 'video/x-raw,format=RGB,width={width},height={height}'
     LEAKY_Q = 'queue max-size-buffers=1 leaky=downstream'

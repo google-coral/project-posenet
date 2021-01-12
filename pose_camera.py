@@ -24,27 +24,28 @@ import svgwrite
 import gstreamer
 
 from pose_engine import PoseEngine
+from pose_engine import KeypointType
 
 EDGES = (
-    ('nose', 'left eye'),
-    ('nose', 'right eye'),
-    ('nose', 'left ear'),
-    ('nose', 'right ear'),
-    ('left ear', 'left eye'),
-    ('right ear', 'right eye'),
-    ('left eye', 'right eye'),
-    ('left shoulder', 'right shoulder'),
-    ('left shoulder', 'left elbow'),
-    ('left shoulder', 'left hip'),
-    ('right shoulder', 'right elbow'),
-    ('right shoulder', 'right hip'),
-    ('left elbow', 'left wrist'),
-    ('right elbow', 'right wrist'),
-    ('left hip', 'right hip'),
-    ('left hip', 'left knee'),
-    ('right hip', 'right knee'),
-    ('left knee', 'left ankle'),
-    ('right knee', 'right ankle'),
+    (KeypointType.NOSE, KeypointType.LEFT_EYE),
+    (KeypointType.NOSE, KeypointType.RIGHT_EYE),
+    (KeypointType.NOSE, KeypointType.LEFT_EAR),
+    (KeypointType.NOSE, KeypointType.RIGHT_EAR),
+    (KeypointType.LEFT_EAR, KeypointType.LEFT_EYE),
+    (KeypointType.RIGHT_EAR, KeypointType.RIGHT_EYE),
+    (KeypointType.LEFT_EYE, KeypointType.RIGHT_EYE),
+    (KeypointType.LEFT_SHOULDER, KeypointType.RIGHT_SHOULDER),
+    (KeypointType.LEFT_SHOULDER, KeypointType.LEFT_ELBOW),
+    (KeypointType.LEFT_SHOULDER, KeypointType.LEFT_HIP),
+    (KeypointType.RIGHT_SHOULDER, KeypointType.RIGHT_ELBOW),
+    (KeypointType.RIGHT_SHOULDER, KeypointType.RIGHT_HIP),
+    (KeypointType.LEFT_ELBOW, KeypointType.LEFT_WRIST),
+    (KeypointType.RIGHT_ELBOW, KeypointType.RIGHT_WRIST),
+    (KeypointType.LEFT_HIP, KeypointType.RIGHT_HIP),
+    (KeypointType.LEFT_HIP, KeypointType.LEFT_KNEE),
+    (KeypointType.RIGHT_HIP, KeypointType.RIGHT_KNEE),
+    (KeypointType.LEFT_KNEE, KeypointType.LEFT_ANKLE),
+    (KeypointType.RIGHT_KNEE, KeypointType.RIGHT_ANKLE),
 )
 
 
@@ -62,8 +63,8 @@ def draw_pose(dwg, pose, src_size, inference_box, color='yellow', threshold=0.2)
     for label, keypoint in pose.keypoints.items():
         if keypoint.score < threshold: continue
         # Offset and scale to source coordinate space.
-        kp_y = int((keypoint.yx[0] - box_y) * scale_y)
-        kp_x = int((keypoint.yx[1] - box_x) * scale_x)
+        kp_x = int((keypoint.point[0] - box_x) * scale_x)
+        kp_y = int((keypoint.point[1] - box_y) * scale_y)
 
         xys[label] = (kp_x, kp_y)
         dwg.add(dwg.circle(center=(int(kp_x), int(kp_y)), r=5,
@@ -75,6 +76,7 @@ def draw_pose(dwg, pose, src_size, inference_box, color='yellow', threshold=0.2)
         bx, by = xys[b]
         dwg.add(dwg.line(start=(ax, ay), end=(bx, by), stroke=color, stroke_width=2))
 
+
 def avg_fps_counter(window_size):
     window = collections.deque(maxlen=window_size)
     prev = time.monotonic()
@@ -85,6 +87,7 @@ def avg_fps_counter(window_size):
         window.append(curr - prev)
         prev = curr
         yield len(window) / sum(window)
+
 
 def run(inf_callback, render_callback):
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -130,7 +133,7 @@ def main():
     sum_process_time = 0
     sum_inference_time = 0
     ctr = 0
-    fps_counter  = avg_fps_counter(30)
+    fps_counter = avg_fps_counter(30)
 
     def run_inference(engine, input_tensor):
         return engine.run_inference(input_tensor)
@@ -140,11 +143,11 @@ def main():
 
         svg_canvas = svgwrite.Drawing('', size=src_size)
         start_time = time.monotonic()
-        outputs, inference_time = engine.ParseOutput(output)
+        outputs, inference_time = engine.ParseOutput()
         end_time = time.monotonic()
         n += 1
         sum_process_time += 1000 * (end_time - start_time)
-        sum_inference_time += inference_time
+        sum_inference_time += inference_time * 1000
 
         avg_inference_time = sum_inference_time / n
         text_line = 'PoseNet: %.1fms (%.2f fps) TrueFPS: %.2f Nposes %d' % (

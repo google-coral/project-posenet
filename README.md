@@ -78,12 +78,16 @@ a keypoint has been detected.
 
 ## Examples in this repo
 
-NOTE: PoseNet relies on the latest Coral API (2.12.2) and for the Dev Board the latest system image - please update your
-system before running these examples. For more information on updating see:
+NOTE: PoseNet relies on the latest Pycoral API, tflite_runtime API, and libedgetpu1-std or libedgetpu1-max:
+  * For [pycoral](https://coral.ai/software#pycoral-api)
+  * For [tflite_runtime](https://www.tensorflow.org/lite/guide/python#install_just_the_tensorflow_lite_interpreter)
+  * For [libedgetpu](https://coral.ai/software#debian-packages), please install the [debian package](https://coral.ai/software#debian-packages) or [shared libraries](https://coral.ai/software#edgetpu-runtime). You can use either Max or Standard clock speed (these only apply for USB devices).
+
+Please also update your system before running these examples. For more information on updating see:
   * For [Coral DevBoard](https://coral.withgoogle.com/docs/dev-board/get-started/#update-the-mendel-software)
   * For [USB Accelerator](https://coral.withgoogle.com/docs/accelerator/get-started/#set-up-on-linux-or-raspberry-pi)
 
-To install all the requirements, simply run 
+To install all other requirements for third party libraries, simply run 
 
 ```
 sh install_requirements.sh
@@ -201,23 +205,28 @@ image. The numpy object should be in int8, [Y,X,RGB] format.
 A minimal example might be:
 
 ```
+from tflite_runtime.interpreter import Interpreter
+import os
 import numpy as np
 from PIL import Image
+from PIL import ImageDraw
 from pose_engine import PoseEngine
 
-pil_image = Image.open('couple.jpg')
-pil_image.resize((641, 481), Image.NEAREST)
 
-engine = PoseEngine('models/mobilenet/posenet_mobilenet_v1_075_481_641_quant_decoder_edgetpu.tflite')
-poses, inference_time = engine.DetectPosesInImage(np.uint8(pil_image))
-print('Inference time: %.fms'%inference_time)
+os.system('wget https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/'
+          'Hindu_marriage_ceremony_offering.jpg/'
+          '640px-Hindu_marriage_ceremony_offering.jpg -O /tmp/couple.jpg')
+pil_image = Image.open('/tmp/couple.jpg').convert('RGB')
+engine = PoseEngine(
+    'models/mobilenet/posenet_mobilenet_v1_075_481_641_quant_decoder_edgetpu.tflite')
+poses, _ = engine.DetectPosesInImage(pil_image)
 
 for pose in poses:
     if pose.score < 0.4: continue
     print('\nPose Score: ', pose.score)
     for label, keypoint in pose.keypoints.items():
-        print(' %-20s x=%-4d y=%-4d score=%.1f'%
-              (label, keypoint.yx[1], keypoint.yx[0], keypoint.score))
+        print('  %-20s x=%-4d y=%-4d score=%.1f' %
+              (label, keypoint.point[0], keypoint.point[1], keypoint.score))
 ```
 
 To try this, run
@@ -229,22 +238,25 @@ And you should see an output like this:
 
 
 ```
-Pose Score:  0.61885977
- nose                 x=210  y=152  score=1.0
- left eye             x=224  y=138  score=1.0
- right eye            x=199  y=136  score=1.0
- left ear             x=245  y=135  score=1.0
- right ear            x=183  y=129  score=0.8
- left shoulder        x=268  y=168  score=0.8
- right shoulder       x=161  y=172  score=1.0
- left elbow           x=282  y=255  score=0.6
- right elbow          x=154  y=254  score=0.9
- left wrist           x=236  y=333  score=0.7
- right wrist          x=163  y=301  score=0.6
- left hip             x=323  y=181  score=0.2
- right hip            x=191  y=251  score=0.0
- left knee            x=343  y=84   score=0.8
- right knee           x=162  y=295  score=0.0
- left ankle           x=318  y=174  score=0.1
- right ankle          x=167  y=309  score=0.0
+Inference time: 14 ms
+
+Pose Score:  0.60698134
+  NOSE                 x=211  y=152  score=1.0
+  LEFT_EYE             x=224  y=138  score=1.0
+  RIGHT_EYE            x=199  y=136  score=1.0
+  LEFT_EAR             x=245  y=135  score=1.0
+  RIGHT_EAR            x=183  y=129  score=0.8
+  LEFT_SHOULDER        x=269  y=169  score=0.7
+  RIGHT_SHOULDER       x=160  y=173  score=1.0
+  LEFT_ELBOW           x=281  y=255  score=0.6
+  RIGHT_ELBOW          x=153  y=253  score=1.0
+  LEFT_WRIST           x=237  y=333  score=0.6
+  RIGHT_WRIST          x=163  y=305  score=0.5
+  LEFT_HIP             x=256  y=318  score=0.2
+  RIGHT_HIP            x=171  y=311  score=0.2
+  LEFT_KNEE            x=221  y=342  score=0.3
+  RIGHT_KNEE           x=209  y=340  score=0.3
+  LEFT_ANKLE           x=188  y=408  score=0.2
+  RIGHT_ANKLE          x=189  y=410  score=0.2
+
 ```
