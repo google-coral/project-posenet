@@ -48,7 +48,17 @@ PoseNet works under the hood, I recommend you take a look at the original
 post](https://medium.com/tensorflow/real-time-human-pose-estimation-in-the-browser-with-tensorflow-js-7dd0bc881cd5)
 whihch describes the raw heatmaps produced by the convolutional model.
 
-
+Note:
+posenet_decoder is a custom ops that needs to be registered by the tflite_runtime's [load_delegate API](https://www.tensorflow.org/api_docs/python/tf/lite/experimental/load_delegate). These ops are precompiled as shared object files [here](https://github.com/google-coral/project-posenet/tree/master/posenet_lib) which get's loads [during runtime](https://github.com/google-coral/project-posenet/blob/master/pose_engine.py#L80). Here are the steps to compile your own .so:
+1) Clone libcoral:
+```
+$ git clone https://github.com/google-coral/libcoral
+```
+2) Build: 
+```
+$ bazel build --compilation_mode=opt --copt=-DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION --verbose_failures --sandbox_debug --subcommands --define PY3_VER=38 --action_env PYTHON_BIN_PATH=/usr/bin/python3 --cpu=k8 --define darwinn_portable=1 --experimental_repo_remote_exec --crosstool_top=@crosstool//:toolchains --compiler=gcc --linkopt=-l:libusb-1.0.so --linkopt=-Wl,--strip-all //coral/posenet:posenet_decoder.so
+```
+The binary will be in the `bazel-bin/coral/posenet/` directory.
 
 
 ### Important concepts
