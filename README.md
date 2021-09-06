@@ -46,7 +46,7 @@ If you're interested in the gory details of the decoding algorithm and how
 PoseNet works under the hood, I recommend you take a look at the original
 [research paper](https://arxiv.org/abs/1803.08225) or this [medium
 post](https://medium.com/tensorflow/real-time-human-pose-estimation-in-the-browser-with-tensorflow-js-7dd0bc881cd5)
-whihch describes the raw heatmaps produced by the convolutional model.
+which describes the raw heatmaps produced by the convolutional model.
 
 
 
