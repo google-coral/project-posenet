@@ -102,7 +102,7 @@ def run(inf_callback, render_callback):
 
     default_model = 'models/mobilenet/posenet_mobilenet_v1_075_%d_%d_quant_decoder_edgetpu.tflite'
     if args.res == '480x360':
-        src_size = (640, 480)
+        src_size = (480, 360)
         appsink_size = (480, 360)
         model = args.model or default_model % (353, 481)
     elif args.res == '640x480':
